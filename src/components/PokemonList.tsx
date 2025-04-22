@@ -1,30 +1,43 @@
-import React, { useState } from "react";
-import { useGetPokemonListQuery } from "../store/api";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import BackToTopButton from "./BackToTopButton";
 
-const PokemonList: React.FC = () => {
-    const pageSize = 21;
-    const [page, setPage] = useState(0);
-    const { data, error, isLoading } = useGetPokemonListQuery("?limit=1000");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [sortOption, setSortOption] = useState("id-asc");
+import { AppDispatch } from "../store/store";
+import {
+    selectUI,
+    setSearchTerm,
+    setSortOption,
+    setCurrentPage,
+} from "../store/uiSlice";
 
-    if (isLoading) return <p className="text-center mt-4">Loading...</p>;
-    if (error) return <p className="text-danger text-center">Error loading Pokémon</p>;
+import {
+    fetchFullPokemonList,
+    selectPokemonList,
+} from "../store/pokemonListSlice";
+
+const PokemonList: React.FC = () => {
+    // Hooks
+    const dispatch = useDispatch<AppDispatch>();
+    const { searchTerm, sortOption, currentPage } = useSelector(selectUI);
+    const { results, loading, error } = useSelector(selectPokemonList);
+
+    useEffect(() => {
+        dispatch(fetchFullPokemonList());
+    }, [dispatch]);
 
     /* Filtering logic */
-    const filteredPokemon = data?.results.filter((pokemon: { name: string }) => 
+    const filteredPokemon = results.filter((pokemon) => 
         pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     /* Sorting logic */
-    const sortedPokemon = filteredPokemon?.slice().sort((a: { name: string }, b: { name: string }) => {
+    const sortedPokemon = filteredPokemon?.slice().sort((a, b) => {
         const nameA = a.name.toLowerCase();
         const nameB = b.name.toLowerCase();
 
-        const idA = data.results.findIndex((p: { name: string }) => p.name === a.name) + 1;
-        const idB = data.results.findIndex((p: { name: string }) => p.name === b.name) + 1;
+        const idA = results.findIndex((p) => p.name === a.name) + 1;
+        const idB = results.findIndex((p) => p.name === b.name) + 1;
 
         switch (sortOption) {
             case "name-asc":
@@ -39,8 +52,12 @@ const PokemonList: React.FC = () => {
         }
     });
 
-    const startIndex = page * pageSize;
-    const currentPagePokemon = sortedPokemon?.slice(startIndex, startIndex + pageSize);
+    const pageSize = 21;
+    const startIndex = currentPage * pageSize;
+    const currentPagePokemon = sortedPokemon.slice(startIndex, startIndex + pageSize);
+
+    if (loading) return <p className="text-center mt-4">Loading...</p>;
+    if (error) return <p className="text-danger text-center">Error loading Pokémon</p>;
 
     return (
         <div className="container">
@@ -53,13 +70,16 @@ const PokemonList: React.FC = () => {
                     className="form-control w-50"
                     placeholder="Search for Pokémon..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                        dispatch(setSearchTerm(e.target.value));
+                        dispatch(setCurrentPage(0)); // Makes it reset to first page when searching
+                    }}
                 />
 
                 <select
                     className="form-select w-25"
                     value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
+                    onChange={(e) => dispatch(setSortOption(e.target.value as any))} // Ask question about any
                 >
                     <option value="id-asc">Pokédex number: Low to high</option>
                     <option value="id-desc">Pokédex number: High to low</option>
@@ -71,7 +91,7 @@ const PokemonList: React.FC = () => {
             { /* Pokémon grid view*/ }
             <div className="row">
                 {currentPagePokemon?.map((pokemon: { name: string }, index: number) => {
-                    const pokemonId = data.results.findIndex((p: { name: string }) => p.name === pokemon.name) + 1 + (page * 21);
+                    const pokemonId = results.findIndex((p: { name: string }) => p.name === pokemon.name) + 1;
                     const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
 
                     return (
@@ -97,18 +117,18 @@ const PokemonList: React.FC = () => {
             <div className="d-flex justify-content-center align-items-center gap-2 mt-4">
                 <button
                     className="btn btn-outline-danger"
-                    onClick={() => setPage((prev) => prev - 1)}
-                    disabled={page === 0}
+                    onClick={() => dispatch(setCurrentPage(currentPage - 1))}
+                    disabled={currentPage === 0}
                 >
                     &laquo; Prev
                 </button>
 
-                <span className="mx-2 fw-bold">Page {page + 1}</span>
+                <span className="mx-2 fw-bold">Page {currentPage + 1}</span>
 
                 <button
                     className="btn btn-outline-danger"
-                    onClick={() => setPage((prev) => prev + 1)}
-                    disabled={startIndex + pageSize >= (sortedPokemon?.length ?? 0)}
+                    onClick={() => dispatch(setCurrentPage(currentPage + 1))}
+                    disabled={startIndex + pageSize >= sortedPokemon.length}
                 >
                     Next &raquo;
                 </button>
