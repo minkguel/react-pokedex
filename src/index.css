@@ -30,44 +30,6 @@ code {
   padding: 0 20px 10px;
 }
 
-/* The main pokédex lens (blue glowing circle) */
-.lens {
-  width: 60px;
-  height: 60px;
-  background: radial-gradient(circle at 30% 30%, #6ec9ff, #0077cc);
-  border: 4px solid white;
-  border-radius: 50%;
-  box-shadow: 0 0 20px #0099ff;
-  margin-right: 20px;
-}
-
-/* Fake D-pad buttons */
-.btn-group {
-  display: flex;
-  gap: 10px;
-}
-
-.button {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #333;
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-}
-
-.button.red {
-  background-color: #e53935;
-}
-.button.yellow {
-  background-color: #fdd835;
-}
-.button.green {
-  background-color: #43a047;
-}
-
-
-
-
 /* Custom Pokémon type badge styles, BootStrap did not have enough color options */
 .badge-normal    { background-color: #A8A77A; color: white; }
 .badge-fire      { background-color: #EE8130; color: white; }

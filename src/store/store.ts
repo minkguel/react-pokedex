@@ -5,7 +5,7 @@ import randomPokemonReducer from "./randomPokemonSlice";
 import uiReducer from "./uiSlice";
 import pokemonListReducer from "./pokemonListSlice";
 
-// Stores data on the Client side
+// Global state
 export const store = configureStore({
     reducer: {
         [pokemonApi.reducerPath]: pokemonApi.reducer,

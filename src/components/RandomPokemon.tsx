@@ -7,6 +7,7 @@ const RandomPokemon = () => {
     const dispatch = useDispatch<AppDispatch>();
     const{ data, loading, error } = useSelector(selectRandomPokemon);
 
+    // Mounting
     useEffect(() => {
         dispatch(fetchRandomPokemon());
     }, [dispatch]);
@@ -14,6 +15,7 @@ const RandomPokemon = () => {
     if (loading) return <p className="text-center">Loading random Pokémon</p>;
     if (error) return <p className="text-danger text-center">Error: {error}</p>;
 
+    // If fulfilled
     return (
         data && (
             <div className="card text-center p-3 my-3">
